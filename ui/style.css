@@ -14,7 +14,7 @@ h1{font-size:34px;line-height:1.4;margin:9px 0 12px;font-weight:700;letter-spaci
 .tabs{display:grid;grid-template-columns:1fr 1fr;border:1.5px solid #b886aa;border-radius:30px;background:#f8eade;overflow:hidden}
 .tabs button,.primary,.summary,.bubble,.actions button{display:inline-flex;align-items:center;justify-content:center;gap:8px}
 .tabs button{height:40px;border:0;border-radius:28px;background:transparent;font-size:18px}
-.primary{color:white;background:linear-gradient(120deg,#b781cf,#9153ad);border-color:#8b529e}
+.primary{color:white;background:var(--orchid);border-color:#8b529e}
 .fields{height:90px;display:flex;align-items:center;justify-content:space-between;gap:8px}.fields label{display:flex;align-items:center;gap:7px;font-size:18px}.fields input{min-width:0;width:86px;height:52px;border:1.5px solid #b188ab;border-radius:11px;background:#fff8ef;text-align:center;font-size:29px;font-weight:650}.fields input::-webkit-inner-spin-button{opacity:1}.fields#absolute label{gap:12px}
 .fields input[type=time]{width:204px;padding-inline:14px 12px;font-size:24px;font-weight:600;font-variant-numeric:tabular-nums}
 .fields input[type=time]::-webkit-calendar-picker-indicator{width:21px;height:21px;margin-inline-start:10px;padding:3px}.fields#absolute{justify-content:center}
@@ -31,7 +31,7 @@ small{display:block;margin-top:5px;font-size:13px}#running p{margin:0}output{dis
 
 /* The selection glides underneath the labels, so neither label changes position. */
 .tabs{position:relative;isolation:isolate}
-.tabs::before{content:"";position:absolute;inset:0 auto 0 0;width:50%;border-radius:28px;background:linear-gradient(120deg,#a16ab9,#884ba4);transition:transform 230ms cubic-bezier(.2,.8,.2,1);z-index:-1}
+.tabs::before{content:"";position:absolute;inset:0 auto 0 0;width:50%;border-radius:28px;background:var(--orchid);transition:transform 230ms cubic-bezier(.2,.8,.2,1);z-index:-1}
 .tabs:has(#clock[aria-pressed=true])::before{transform:translateX(100%)}
 .tabs button{transition:color 150ms ease,transform 140ms ease}
 .tabs button[aria-pressed=true]{color:#fff}
@@ -79,9 +79,44 @@ small{display:block;margin-top:5px;font-size:13px}#running p{margin:0}output{dis
 [data-theme=dark] button,[data-theme=dark] #bar .pref,[data-theme=dark] #languages,[data-theme=dark] .bubble:after{background:#413347;border-color:#a685a5;color:#faeafa}
 [data-theme=dark] header button,[data-theme=dark] .tabs button,[data-theme=dark] .character{background:transparent}
 [data-theme=dark] .tabs{background:#352a3a;border-color:#927694}
-[data-theme=dark] .tabs::before,[data-theme=dark] .primary{background:linear-gradient(120deg,#845296,#74438a);color:white}
+[data-theme=dark] .tabs::before,[data-theme=dark] .primary{background:var(--orchid);color:white}
 [data-theme=dark] .fields input{background:#342938;border-color:#9b7b9a;color:#f9e8f6}
 [data-theme=dark] .summary,[data-theme=dark] #languages button[aria-pressed=true],[data-theme=dark] #languages button:hover{background:#57415a}
 [data-theme=dark] #languages button{background:transparent}
 [data-theme=dark] .hero em{color:#dec2e8}
 [data-theme=dark] button:focus-visible,[data-theme=dark] input:focus-visible{outline-color:#e7bdf4}
+
+/* A shallow curved highlight leaves the center clear for the white label. */
+:root {
+  --orchid: radial-gradient(ellipse 76% 148% at 62% 148%, transparent 97%, #ffecff19 100%),
+    linear-gradient(155deg, #b47bc4 0%, #9656a9 43%, #804192 82%, #733786 100%);
+  --rim: inset 0 0 0 1px #f5d9ff70, inset 0 2px 1px #fff1ff32;
+  --lift: 0 2px 4px #58265c24;
+  --porcelain: linear-gradient(155deg, #fffaf2, #f9ece4);
+}
+:root[data-theme=dark] {
+  --orchid: radial-gradient(ellipse 76% 148% at 62% 148%, transparent 97%, #ffe9ff16 100%),
+    linear-gradient(155deg, #9b69ad, #814991 45%, #673677);
+  --rim: inset 0 0 0 1px #f1c9ff54, inset 0 2px 1px #ffefff20;
+  --lift: 0 2px 4px #180c2038;
+  --porcelain: linear-gradient(155deg, #504054, #3d3043);
+}
+.tabs::before {box-shadow:var(--rim)}
+.primary, .primary:hover:not(:disabled) {box-shadow:var(--rim), var(--lift)}
+.actions .primary:hover {box-shadow:var(--rim), var(--lift)}
+.actions button:not(.primary), #bar .pref, .overlay .bubble {background:var(--porcelain)}
+#start {position:relative;padding-inline:34px}
+.glints {position:absolute;right:6%;top:50%;width:16px;height:17px;translate:0 -50%;pointer-events:none}
+.glints::before,.glints::after {
+  content:"";position:absolute;background:#ffe6a8;
+  clip-path:polygon(50% 0,61% 36%,100% 50%,62% 61%,50% 100%,39% 62%,0 50%,38% 37%);
+}
+.glints::before {right:0;top:0;width:10px;height:12px}
+.glints::after {left:0;bottom:0;width:7px;height:8px}
+#start:is(:hover,:focus-visible):enabled .glints::before {animation:twinkle 570ms ease-in-out 1}
+#start:is(:hover,:focus-visible):enabled .glints::after {animation:twinkle 460ms 100ms ease-in-out 1}
+@keyframes twinkle {
+  0%,100% {opacity:1;transform:scale(1)}
+  28% {opacity:.55;transform:scale(.72) rotate(-10deg)}
+  61% {opacity:1;transform:scale(1.26) rotate(8deg)}
+}

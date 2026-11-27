@@ -5,7 +5,6 @@
 <section id="setup"><div class="tabs"><button id="duration" aria-pressed="true"><i data-icon="timer"></i><span data-text="duration">ปิดในอีก</span></button><button id="clock" aria-pressed="false"><i data-icon="calendar"></i><span data-text="clock">ปิดตอน</span></button></div>
 <div class="fields" id="relative"><label><input id="hours" type="number" min="0" max="8759" value="1" required><span data-text="hours">ชั่วโมง</span></label><label><input id="mins" type="number" min="0" max="59" value="30" required> <span data-text="mins">นาที</span></label></div>
 <div class="fields" id="absolute" hidden><label><span data-text="time">เวลา</span> <input id="time" type="time" required data-label="time" aria-label="เวลาที่จะปิดเครื่อง"></label></div>
-<p class="summary"><i data-icon="clock"></i><span id="summary"></span></p><button class="primary" id="start"><i data-icon="power"></i><span data-text="start">เริ่มนับถอยหลัง</span></button></section>
+<p class="summary"><i data-icon="clock"></i><span id="summary"></span></p><button class="primary" id="start"><i data-icon="power"></i><span data-text="start">เริ่มนับถอยหลัง</span><span class="glints" aria-hidden="true"></span></button></section>
 <section hidden id="running"><p><span data-text="remaining">เวลาที่เหลือ</span></p><output id="remaining"></output><div class="actions"><button class="primary" id="extend"><span data-text="extend">เพิ่ม 10 นาที</span></button><button id="cancel"><span data-text="cancel">ยกเลิก</span></button></div></section>
 <small id="notice" role="status"></small></main></body></html>
-
