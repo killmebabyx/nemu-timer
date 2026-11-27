@@ -1,0 +1,48 @@
+{
+  "productName": "Nemu Timer",
+  "version": "1.0.0",
+  "identifier": "app.nemu.timer",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Nemu Timer",
+        "width": 388,
+        "height": 548,
+        "minWidth": 320,
+        "minHeight": 430,
+        "center": true,
+        "decorations": false,
+        "resizable": false
+      },
+      {
+        "label": "pet",
+        "url": "pet.html",
+        "title": "Nemu",
+        "width": 332,
+        "height": 184,
+        "visible": false,
+        "transparent": true,
+        "decorations": false,
+        "shadow": false,
+        "resizable": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "focus": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:"
+    }
+  },
+  "bundle": {
+    "icon": [
+      "icons/icon.ico",
+      "icons/icon.png"
+    ]
+  }
+}

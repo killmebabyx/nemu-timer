@@ -1,0 +1,20 @@
+[package]
+name = "nemu-timer"
+version = "1.0.0"
+edition = "2021"
+build = "build.rs"
+
+[dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Graphics_Gdi"] }
+tauri-plugin-single-instance = "2"
+tauri = { version = "2", features = ["tray-icon"] }
+
+[build-dependencies]
+tauri-build = "2"
+
+
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+
