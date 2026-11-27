@@ -1,23 +1,28 @@
 # Nemu Timer
 
-โปรแกรมตั้งเวลาปิดเครื่องสำหรับ Windows x64 ใช้ Rust, Tauri 2 และ Microsoft Edge WebView2 Runtime
+A Windows shutdown timer with Nemu, a little animated companion who keeps an eye on the countdown from the corner of your desktop.
 
-เปิด Nemu Timer.exe เลือก **ปิดในอีก** เพื่อระบุชั่วโมงกับนาที หรือ **ปิดตอน** เพื่อเลือกเวลาตามนาฬิกาของเครื่อง หากเวลานั้นผ่านแล้ว แอปจะเลือกวันถัดไป ตรวจวันและเวลาในแถบสรุปแล้วกด **เริ่มนับถอยหลัง**
+**[Download for Windows x64 · ดาวน์โหลดสำหรับ Windows](https://github.com/killmebabyx/nemu-timer/releases/latest/download/Nemu.Timer.exe)**
 
-น้องเนมุจะปรากฏที่มุมขวาล่างของจอ คลิกตัวละครหรือป้ายเวลาเพื่อเพิ่ม 10 นาทีหรือยกเลิก ลากตัวละครเพื่อย้ายตำแหน่ง เมื่อเหลือหนึ่งนาที น้องจะเปลี่ยนท่าและแสดงปุ่มให้โดยอัตโนมัติ
+<p>
+  <img src="docs/images/timer.png" width="300" alt="Nemu Timer showing a shutdown delay of one hour and thirty minutes">
+  <img src="docs/images/desktop-pet.png" width="245" alt="Nemu hugging a moon pillow beside the remaining time">
+</p>
 
-คลิกไอคอนน้องเนมุข้างนาฬิกาเพื่อเปิดหน้าหลัก หรือคลิกขวาเพื่อเปิดเมนูคลิกทะลุ ในช่วงหนึ่งนาทีสุดท้ายแอปจะคืนการรับคลิกให้ตัวละคร ปิดหน้าหลักระหว่างนับถอยหลังได้ ตัวจับเวลาจะยังทำงานอยู่
+1. Open the app. Choose **After** for a delay or **At time** for a specific time.
+2. Check the shutdown time and click **Start countdown**.
+3. Click Nemu to add 10 minutes or cancel. Drag her to move her out of the way.
 
-เมื่อถึงกำหนด แอปเรียก shutdown.exe /s /t 0 ของ Windows โปรแกรมที่มีงานค้างอาจขอให้บันทึกก่อนปิดเครื่อง ถ้าเครื่องหลับผ่านเวลาที่ตั้งไว้ แอปจะตรวจเวลาอีกครั้งหลังเครื่องตื่น การออกจากกระบวนการแอปหรือรีสตาร์ตเครื่องจะล้างตัวจับเวลา
+**ภาษาไทย** เลือก **ปิดในอีก** หรือ **ปิดตอน** แล้วกด **เริ่มนับถอยหลัง** คลิกน้องเนมุที่มุมจอเพื่อเพิ่มเวลาหรือยกเลิก เปลี่ยนภาษาที่ปุ่มรูปลูกโลก และสลับธีมที่ปุ่มพระจันทร์
 
-## สำหรับนักพัฒนา
+Supports English, ไทย, 日本語 and 简体中文. Requires Windows x64 and Microsoft Edge WebView2 Runtime.
 
-ติดตั้ง Rust stable สำหรับ x86_64-pc-windows-msvc, Visual Studio C++ Build Tools, Windows SDK และ WebView2 Runtime จากโฟลเดอร์โครงการรัน
+<details>
+<summary>Try the countdown in preview mode</summary>
+
+From PowerShell in the download folder, run the command below. When the timer ends, Nemu shows a message and your PC stays on.
 
 ```powershell
-cargo build --release --locked --manifest-path src-tauri/Cargo.toml
-.\src-tauri\target\release\nemu-timer.exe --preview
+.\Nemu.Timer.exe --preview
 ```
-
-โหมด --preview ใช้ตรวจขั้นตอนทั้งหมดรวมถึงการหมดเวลา โดยแสดงข้อความเมื่อถึงกำหนด สำหรับใช้งานจริง ให้ปิดแอปโหมดทดสอบก่อนแล้วเปิดโปรแกรมตามปกติ ภาพตัวละครและไอคอนรวมอยู่ในไฟล์โปรแกรมแล้ว
-
+</details>
