@@ -22,6 +22,8 @@ struct Timer {
     end: Option<u64>,
     notice: String,
     pass_through: bool,
+    ignoring_pointer: bool,
+    hit_mask: Vec<[i32; 4]>,
 }
 type Shared = Mutex<Timer>;
 type Reply<T = ()> = Result<T, String>;
@@ -74,7 +76,7 @@ fn start(app: AppHandle, deadline: u64, timer: State<Shared>) -> Reply {
     }
     let pet = window(&app, "pet");
     home_pet(&app)?;
-    pet.set_ignore_cursor_events(false)
+    pet.set_ignore_cursor_events(true)
         .map_err(|e| e.to_string())?;
     pet.show().map_err(|e| e.to_string())?;
     if let Err(e) = window(&app, "main").hide() {
@@ -84,6 +86,7 @@ fn start(app: AppHandle, deadline: u64, timer: State<Shared>) -> Reply {
     t.end = Some(deadline);
     t.notice.clear();
     t.pass_through = false;
+    t.ignoring_pointer = true;
     Ok(())
 }
 #[tauri::command]
@@ -121,39 +124,59 @@ fn preview_mode(preview: State<bool>) -> bool {
 }
 
 #[tauri::command]
-fn shape_pet(window: WebviewWindow, rects: Vec<[i32; 4]>) -> Reply {
-    use windows_sys::Win32::Graphics::Gdi::{
-        CombineRgn, CreateRectRgn, DeleteObject, SetRectRgn, SetWindowRgn, RGN_OR,
-    };
+fn shape_pet(window: WebviewWindow, rects: Vec<[i32; 4]>, timer: State<Shared>) -> Reply {
     if window.label() != "pet" || rects.len() > 8192 {
-        return Err("Invalid pet region".into());
+        return Err("Invalid pet hit mask".into());
     }
-    let hwnd = window.hwnd().map_err(|e| e.to_string())?.0;
-    // Windows uses this region for both composition and cross-process mouse hit testing.
-    unsafe {
-        let region = CreateRectRgn(0, 0, 0, 0);
-        let part = CreateRectRgn(0, 0, 0, 0);
-        let mut ok = !region.is_null() && !part.is_null();
-        if ok {
-            for [left, top, right, bottom] in rects {
-                if SetRectRgn(part, left, top, right, bottom) == 0 ||
-                    CombineRgn(region, region, part, RGN_OR) == 0 {
-                    ok = false;
-                    break;
-                }
-            }
-        }
-        if !part.is_null() { DeleteObject(part); }
-        if ok && SetWindowRgn(hwnd, region, 1) != 0 {
-            // On success the system owns the region.
-            Ok(())
-        } else {
-            if !region.is_null() { DeleteObject(region); }
-            Err("Unable to shape pet window".into())
-        }
-    }
+    timer.lock().unwrap().hit_mask = rects;
+    Ok(())
 }
 
+// Keep the WebView surface rectangular so DWM can composite soft edges at any
+// focus state. The silhouette is only used to route pointer input.
+fn follow_pointer(app: &AppHandle, pet: &WebviewWindow, hwnd: usize) {
+    use windows_sys::Win32::{
+        Foundation::{POINT, RECT},
+        UI::{
+            Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON},
+            WindowsAndMessaging::{GetCursorPos, GetWindowRect},
+        },
+    };
+    let state = app.state::<Shared>();
+    let mut t = state.lock().unwrap();
+    if t.end.is_none() {
+        return;
+    }
+
+    let mut pointer = POINT::default();
+    let mut bounds = RECT::default();
+    unsafe {
+        if GetCursorPos(&mut pointer) == 0 || GetWindowRect(hwnd as _, &mut bounds) == 0 {
+            return;
+        }
+        // Preserve the target of a press or native drag until button release.
+        if GetAsyncKeyState(VK_LBUTTON as i32) < 0 {
+            return;
+        }
+    }
+    let x = pointer.x - bounds.left;
+    let y = pointer.y - bounds.top;
+    let inside = pointer.x >= bounds.left
+        && pointer.x < bounds.right
+        && pointer.y >= bounds.top
+        && pointer.y < bounds.bottom;
+    let ignore = t.pass_through
+        || !inside
+        || !t
+            .hit_mask
+            .iter()
+            .any(|&[l, top, r, b]| x >= l && x < r && y >= top && y < b);
+    if ignore != t.ignoring_pointer {
+        t.ignoring_pointer = ignore;
+        drop(t);
+        let _ = pet.set_ignore_cursor_events(ignore);
+    }
+}
 fn shutdown() -> Reply {
     let root = env::var_os("SystemRoot").ok_or("systemRoot")?;
     let output = Command::new(PathBuf::from(root).join("System32").join("shutdown.exe"))
@@ -172,10 +195,8 @@ fn tick(app: &AppHandle, preview: bool) {
     let mut t = shared.lock().unwrap();
     let Some(end) = t.end else { return };
     let remaining = end.saturating_sub(now());
-    if remaining <= 60_000 && t.pass_through {
-        if window(app, "pet").set_ignore_cursor_events(false).is_ok() {
-            t.pass_through = false;
-        }
+    if remaining <= 60_000 {
+        t.pass_through = false;
     }
     if remaining > 0 {
         return;
@@ -195,13 +216,24 @@ fn tick(app: &AppHandle, preview: bool) {
 fn tray_language(app: AppHandle, language: String) -> Reply {
     let labels = match language.as_str() {
         "en" => ["Open Nemu Timer", "Toggle click-through", "Cancel shutdown"],
-        "ja" => ["Nemu Timer を開く", "クリック透過を切り替え", "シャットダウンを取り消す"],
+        "ja" => [
+            "Nemu Timer を開く",
+            "クリック透過を切り替え",
+            "シャットダウンを取り消す",
+        ],
         "zh-CN" => ["打开 Nemu Timer", "切换鼠标穿透", "取消关机"],
         _ => ["เปิด Nemu Timer", "สลับโหมดคลิกทะลุตัวละคร", "ยกเลิกการปิดเครื่อง"],
     };
-    let menu = MenuBuilder::new(&app).text("open", labels[0]).text("pass", labels[1])
-        .text("cancel", labels[2]).build().map_err(|e|e.to_string())?;
-    app.tray_by_id("nemu").ok_or("Tray unavailable")?.set_menu(Some(menu)).map_err(|e|e.to_string())
+    let menu = MenuBuilder::new(&app)
+        .text("open", labels[0])
+        .text("pass", labels[1])
+        .text("cancel", labels[2])
+        .build()
+        .map_err(|e| e.to_string())?;
+    app.tray_by_id("nemu")
+        .ok_or("Tray unavailable")?
+        .set_menu(Some(menu))
+        .map_err(|e| e.to_string())
 }
 fn main() {
     let preview = env::args().any(|s| s == "--preview");
@@ -212,7 +244,16 @@ fn main() {
         .manage(Shared::default())
         .manage(preview)
         .invoke_handler(tauri::generate_handler![
-            status, start, extend, cancel, drag, minimize, close_main, preview_mode, tray_language, shape_pet
+            status,
+            start,
+            extend,
+            cancel,
+            drag,
+            minimize,
+            close_main,
+            preview_mode,
+            tray_language,
+            shape_pet
         ])
         .on_window_event(|w, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
@@ -255,17 +296,23 @@ fn main() {
                     "pass" => {
                         let state = app.state::<Shared>();
                         let mut t = state.lock().unwrap();
-                        if t.end.is_some_and(|end| end > now() + 60_000)
-                            && window(app, "pet")
-                                .set_ignore_cursor_events(!t.pass_through)
-                                .is_ok()
-                        {
+                        if t.end.is_some_and(|end| end > now() + 60_000) {
                             t.pass_through = !t.pass_through;
                         }
                     }
                     _ => {}
                 })
                 .build(app)?;
+            let hover_app = app.handle().clone();
+            let pet = window(&hover_app, "pet");
+            let hwnd = pet.hwnd()?.0 as usize;
+            thread::spawn(move || loop {
+                let active = hover_app.state::<Shared>().lock().unwrap().end.is_some();
+                if active {
+                    follow_pointer(&hover_app, &pet, hwnd);
+                }
+                thread::sleep(Duration::from_millis(if active { 12 } else { 100 }));
+            });
             let handle = app.handle().clone();
             thread::spawn(move || loop {
                 thread::sleep(Duration::from_millis(250));
@@ -277,7 +324,3 @@ fn main() {
         .run(tauri::generate_context!())
         .expect("Nemu Timer startup failed");
 }
-
-
-
-

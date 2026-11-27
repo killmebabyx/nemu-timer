@@ -1,4 +1,4 @@
-// Build the native window shape in CSS pixels. A few pixels around the painted
+// Build a pointer hit mask in CSS pixels. A few pixels around the painted
 // edges accommodate the breathing, ear twitch, antialiasing and bubble shadow.
 const petMask = document.createElement('canvas');
 const mask = petMask.getContext('2d', {willReadFrequently:true});
@@ -69,3 +69,4 @@ new ResizeObserver(scheduleShape).observe($('bubble'));
 window.addEventListener('resize',scheduleShape);
 document.addEventListener('visibilitychange',scheduleShape);
 scheduleShape();
+
