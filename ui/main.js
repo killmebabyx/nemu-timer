@@ -1,6 +1,31 @@
 let mode='duration', busy=false, message='';
 const initial=new Date(Date.now()+3600000);
 $('time').value=clockText(initial);
+$('timeValue').textContent=$('time').value;
+const timeButton=$('time');
+let pressedWhileOpen=false;
+timeButton.setAttribute('aria-expanded','false');
+timeButton.onpointerdown=()=>{pressedWhileOpen=timeButton.getAttribute('aria-expanded')==='true'};
+timeButton.onpointercancel=()=>{pressedWhileOpen=false};
+timeButton.onclick=async event=>{
+ const dismiss=event.detail>0 && pressedWhileOpen;
+ pressedWhileOpen=false;
+ // Blur starts folding before Windows delivers the click to this window.
+ // Remember the state at press time, including for a long press.
+ if(dismiss && timeButton.getAttribute('aria-expanded')==='false')return;
+ const rect=timeButton.getBoundingClientRect();
+ const [h,m]=timeButton.value.split(':').map(Number);
+ timeButton.setAttribute('aria-expanded','true');
+ try {await invoke('open_dial',{left:rect.left,right:rect.right,center:rect.top+rect.height/2,minutes:h*60+m})}
+ catch(e){timeButton.setAttribute('aria-expanded','false');message=String(e);refresh()}
+};
+window.addEventListener('dialvalue',event=>{
+ const minutes=event.detail;
+ $('time').value=pad(Math.floor(minutes/60))+':'+pad(minutes%60);
+ $('timeValue').textContent=$('time').value;
+ preview();
+ $('time').focus();
+});
 function target(now){
  if(mode==='clock')return nextClock($('time').value,now);
  const fields=[$('hours'),$('mins')];

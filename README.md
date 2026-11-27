@@ -7,11 +7,11 @@ A Windows shutdown timer with Nemu, an animated companion who watches the countd
 **[Download for Windows x64](https://github.com/killmebabyx/nemu-timer/releases/latest/download/Nemu.Timer.exe)**
 
 <p>
-  <img src="docs/images/timer.png" width="300" alt="Nemu Timer set to one hour and thirty minutes">
+  <img src="docs/images/timer.png" width="510" alt="The At time field and clock dial set to 19:32">
   <img src="docs/images/desktop-pet.png" width="245" alt="Nemu showing the one-minute preview warning">
 </p>
 
-1. Choose **After** for a delay or **At time** for a specific time. Check the shutdown time, then click **Start countdown**.
+1. Choose **After** for a delay or **At time** for a specific time. Click the time field to open the dial. Select the hour, then click the minutes above the dial to pick any minute. Click **OK** to apply, or click the time field again to close without saving. Check the time and click **Start countdown**.
 2. Click Nemu to add 10 minutes or cancel. Drag her to move her. In the final minute, the controls appear automatically.
 3. Use the globe to change language and the moon or sun to switch themes. Nemu remembers both on your PC.
 

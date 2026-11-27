@@ -120,3 +120,6 @@ small{display:block;margin-top:5px;font-size:13px}#running p{margin:0}output{dis
   28% {opacity:.55;transform:scale(.72) rotate(-10deg)}
   61% {opacity:1;transform:scale(1.26) rotate(8deg)}
 }
+#time{width:204px;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px 0 22px;font-size:24px;font-weight:600;font-variant-numeric:tabular-nums}
+#time i{width:21px;height:21px}
+#time[aria-expanded=true]{border-color:#aa75b8;box-shadow:0 0 0 3px #b483c329}

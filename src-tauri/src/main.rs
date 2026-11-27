@@ -177,6 +177,71 @@ fn follow_pointer(app: &AppHandle, pet: &WebviewWindow, hwnd: usize) {
         let _ = pet.set_ignore_cursor_events(ignore);
     }
 }
+#[tauri::command]
+fn open_dial(app: AppHandle, left: f64, right: f64, center: f64, minutes: u16) -> Reply {
+    let main = window(&app, "main");
+    let dial = window(&app, "dial");
+    if minutes >= 1440 {
+        return Err("invalid".into());
+    }
+    if dial.is_visible().map_err(|e| e.to_string())? {
+        return dial
+            .eval("window.dispatchEvent(new Event('dialdismiss'))")
+            .map_err(|e| e.to_string());
+    }
+    let pos = main.inner_position().map_err(|e| e.to_string())?;
+    let scale = main.scale_factor().map_err(|e| e.to_string())?;
+    let monitor = main
+        .current_monitor()
+        .map_err(|e| e.to_string())?
+        .ok_or("monitor")?;
+    let area = monitor.work_area();
+    let width = (280. * scale).ceil() as i32;
+    let height = (436. * scale).ceil() as i32;
+    let xmax = (area.position.x + area.size.width as i32 - width).max(area.position.x);
+    let ymax = (area.position.y + area.size.height as i32 - height).max(area.position.y);
+    let mut x = pos.x + (right * scale).round() as i32;
+    let opens_left = x > xmax;
+    if opens_left {
+        x = pos.x + (left * scale).round() as i32 - width;
+    }
+    let anchor = pos.y + (center * scale).round() as i32;
+    let y = (anchor - height * 62 / 100).clamp(area.position.y, ymax);
+    let tip = ((anchor - y) as f64 / scale).clamp(32., 403.);
+    let side = if opens_left { "left" } else { "right" };
+    dial.set_position(PhysicalPosition::new(x.clamp(area.position.x, xmax), y))
+        .map_err(|e| e.to_string())?;
+    dial.eval(format!("document.documentElement.dataset.side='{side}';document.documentElement.style.setProperty('--tip','{tip}px')")).map_err(|e|e.to_string())?;
+    dial.show()
+        .and_then(|_| dial.set_focus())
+        .map_err(|e| e.to_string())?;
+    dial.eval(format!(
+        "window.dispatchEvent(new CustomEvent('dialopen',{{detail:{minutes}}}))"
+    ))
+    .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn close_dial(app: AppHandle, minutes: Option<u16>, restore_focus: bool) -> Reply {
+    let main = window(&app, "main");
+    if let Some(value) = minutes {
+        if value >= 1440 {
+            return Err("invalid".into());
+        }
+        main.eval(format!(
+            "window.dispatchEvent(new CustomEvent('dialvalue',{{detail:{value}}}))"
+        ))
+        .map_err(|e| e.to_string())?;
+    }
+    window(&app, "dial").hide().map_err(|e| e.to_string())?;
+    main.eval("document.getElementById('time').setAttribute('aria-expanded','false')")
+        .map_err(|e| e.to_string())?;
+    if restore_focus {
+        main.set_focus().map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
 fn shutdown() -> Reply {
     let root = env::var_os("SystemRoot").ok_or("systemRoot")?;
     let output = Command::new(PathBuf::from(root).join("System32").join("shutdown.exe"))
@@ -253,9 +318,26 @@ fn main() {
             close_main,
             preview_mode,
             tray_language,
+            open_dial,
+            close_dial,
             shape_pet
         ])
         .on_window_event(|w, event| {
+            if w.label() == "dial" {
+                match event {
+                    WindowEvent::Focused(false) => {
+                        let _ = window(w.app_handle(), "dial")
+                            .eval("window.dispatchEvent(new Event('dialdismiss'))");
+                    }
+                    WindowEvent::CloseRequested { api, .. } => {
+                        api.prevent_close();
+                        let _ = window(w.app_handle(), "dial")
+                            .eval("window.dispatchEvent(new Event('dialdismiss'))");
+                    }
+                    _ => {}
+                }
+                return;
+            }
             if let WindowEvent::CloseRequested { api, .. } = event {
                 if w.label() == "pet" || w.state::<Shared>().lock().unwrap().end.is_some() {
                     api.prevent_close();

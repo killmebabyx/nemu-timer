@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Nemu Timer · Clock</title>
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="dial.css">
+<script defer src="shared.js"></script><script defer src="preferences.js"></script><script defer src="dial.js"></script></head>
+<body class="dial-window"><section class="dial-card" role="dialog" data-label="time">
+<div class="readout"><button id="hour" data-label="hours"></button><b>:</b><button id="minute" data-label="mins"></button></div>
+<svg id="face" viewBox="0 0 220 220" tabindex="0" role="slider" aria-orientation="horizontal"></svg>
+<div class="period"><button id="am">AM</button><button id="pm">PM</button></div>
+<footer><button id="dismiss" data-text="cancel"></button><button class="primary" id="apply" data-text="ok"></button></footer>
+</section></body></html>

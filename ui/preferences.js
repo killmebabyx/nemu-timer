@@ -1,5 +1,5 @@
 const languages = ['th','en','ja','zh-CN'];
-const catalog = {"heading":["ตั้งเวลาปิดคอม","Shutdown timer","シャットダウンタイマー","定时关机"],
+const catalog = {"ok":["ตกลง","OK","決定","确定"],"heading":["ตั้งเวลาปิดคอม","Shutdown timer","シャットダウンタイマー","定时关机"],
   "duration":["ปิดในอีก","After","あと","倒计时"],
   "clock":["ปิดตอน","At time","時刻指定","指定时间"],
   "hours":["ชั่วโมง","hours","時間","小时"],
@@ -67,4 +67,3 @@ window.addEventListener('storage',event=>{
   if(event.key===settingsKey || !event.key){appearance=readAppearance(); renderAppearance();}
 });
 renderAppearance();
-

@@ -1,0 +1,42 @@
+.dial-window{background:transparent;overflow:hidden;user-select:none;--paper:#fff6e9;--edge:#ba96af}
+[data-theme=dark] .dial-window{--paper:#3c2e42;--edge:#977895}
+.dial-card{position:absolute;inset:6px 6px 8px 16px;padding:16px 14px 12px;border:1px solid var(--edge);border-radius:19px;background:var(--paper);box-shadow:0 3px 6px #43213c30;display:flex;flex-direction:column;align-items:center;justify-content:space-between;transform-origin:left var(--tip,62%)}
+.dial-card::before{content:"";position:absolute;top:calc(var(--tip,270px) - 16px);left:-9px;width:16px;height:16px;background:var(--paper);border:solid var(--edge);border-width:0 0 1px 1px;transform:rotate(45deg)}
+[data-side=left] .dial-card{inset-inline:6px 16px}
+[data-side=left] .dial-card::before{left:auto;right:-9px;transform:rotate(225deg)}
+.readout,.period,footer{display:flex;align-items:center;justify-content:center}
+.readout{gap:7px;font-size:25px}
+.readout button{width:69px;height:46px;border-radius:13px;font-size:27px;font-variant-numeric:tabular-nums}
+.dial-card button[aria-pressed=true]{background:var(--orchid);color:white;border-color:transparent}
+#face{display:block;width:223px;height:223px;touch-action:none;cursor:pointer;border-radius:50%}
+#face:focus-visible{outline:2px solid #b884c9;outline-offset:1px}
+#face text{font-size:17px;font-weight:600;fill:currentColor;pointer-events:none}
+#face .ticks{stroke:currentColor;opacity:.56}
+#face .rim{stroke:var(--edge);stroke-width:1.2;fill:none}
+#face .hand{stroke:currentColor;stroke-width:2.2}
+#face .selected{fill:#e2b6ee}
+#face text.on{fill:#502746}
+.period{width:150px;border:1px solid var(--edge);border-radius:22px;overflow:hidden}
+.period button{border:0;border-radius:20px;width:50%;height:29px;background:transparent;font-size:14px}
+footer{width:100%;border-top:1px solid #ad8aa55e;padding-top:10px;justify-content:space-between}
+footer button{padding:4px 17px;min-width:78px;font-size:15px;border-radius:22px}
+#dismiss{border-color:transparent;background:transparent}
+#dismiss:hover{background:#a879aa18}
+
+[data-side=left] .dial-card{transform-origin:right var(--tip,62%)}
+#needle,#numbers{transform-origin:110px 110px}
+#needle{transition:transform 215ms cubic-bezier(.2,.8,.22,1)}
+#face.dragging #needle{transition-duration:38ms}
+#face .selected{transition:r 140ms ease}
+#face .ticks{transition:opacity 170ms}
+#face[data-stage=hour] .ticks{opacity:0}
+#face text{transition:fill 140ms}
+.period{position:relative;isolation:isolate}
+.period::before{content:"";position:absolute;inset:0 auto 0 0;width:50%;border-radius:20px;background:var(--orchid);transition:transform 195ms cubic-bezier(.2,.8,.22,1);z-index:-1}
+.period:has(#pm[aria-pressed=true])::before{transform:translateX(100%)}
+.dial-card .period button{background:transparent}
+.dial-card button{transition:transform 140ms ease-out,color 150ms,box-shadow 150ms}
+.dial-card button:hover{box-shadow:inset 0 0 0 1px #bc8fc04d}
+.dial-card button:active{transform:scale(.955);transition-duration:65ms}
+#halo{fill:none;stroke:#b780cb;stroke-width:1.4;opacity:0;pointer-events:none}
+.dial-card{opacity:0;will-change:transform,opacity}
